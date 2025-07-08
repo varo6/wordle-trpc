@@ -228,7 +228,7 @@ function ResultComponent() {
                 className="font-mono bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 transition-all duration-200 hover:shadow-lg hover:scale-105"
               >
                 <RotateCcw className="w-4 h-4 mr-2" />
-                Ver resultados
+                Ver tablero
               </Button>
               <Button
                 onClick={handleGoHome}

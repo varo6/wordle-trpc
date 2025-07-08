@@ -24,11 +24,11 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
   head: () => ({
     meta: [
       {
-        title: "My App",
+        title: "TRUSTLAB Wordle 🧠",
       },
       {
-        name: "description",
-        content: "My App is a web application",
+        name: "wordle de ciberseguridad",
+        content: "wordle de ciberseguridad",
       },
     ],
     links: [
@@ -44,7 +44,6 @@ function RootComponent() {
   const isFetching = useRouterState({
     select: (s) => s.isLoading,
   });
-
 
   return (
     <>
