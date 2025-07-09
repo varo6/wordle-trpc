@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  wordle-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    ports:
+      - "53880:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - CORS_ORIGIN=https://trustlabwordle.alvarohr.es,http://localhost:53880,http://localhost:3000
+      - DATABASE_URL=file:./local.db
+    volumes:
+      - ./data:/app/data
+      - ./apps/server/local.db:/app/local.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  wordle_data:
+    driver: local

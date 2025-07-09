@@ -1,0 +1,42 @@
+# Dockerfile simplificado para deploy casero con Cloudflare tunnel
+FROM oven/bun:1.2.17-alpine AS base
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apk add --no-cache curl
+
+# Copiar archivos de configuración
+COPY package.json bun.lock* turbo.json ./
+COPY apps/server/package.json ./apps/server/
+COPY apps/web/package.json ./apps/web/
+
+# Instalar dependencias
+RUN bun install --frozen-lockfile
+
+# Copiar código fuente
+COPY apps/ ./apps/
+
+# Construir las aplicaciones
+RUN bun run build
+
+# Crear usuario no-root
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 wordle
+
+# Cambiar permisos
+RUN chown -R wordle:nodejs /app
+USER wordle
+
+# Exponer puerto
+EXPOSE 3000
+
+# Variables de entorno
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
+
+# Comando por defecto
+CMD ["bun", "run", "apps/server/dist/src/index.js"]
