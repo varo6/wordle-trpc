@@ -70,6 +70,23 @@ start_services() {
 
     if docker-compose -f $COMPOSE_FILE ps | grep -q "Up"; then
         print_info "✅ Servicios iniciados correctamente"
+
+        # Verificar que todos los servicios estén healthy
+        print_info "⏳ Verificando salud de servicios..."
+        sleep 15
+
+        if curl -f http://localhost:$PORT/nginx-health &>/dev/null; then
+            print_info "✅ Nginx proxy funcionando"
+        else
+            print_warning "⚠️ Nginx proxy no responde"
+        fi
+
+        if curl -f http://localhost:$PORT/api/health &>/dev/null; then
+            print_info "✅ Backend API funcionando"
+        else
+            print_warning "⚠️ Backend API no responde"
+        fi
+
         show_status
     else
         print_error "❌ Error al iniciar servicios"
@@ -104,6 +121,10 @@ show_status() {
     echo "  • Local: http://localhost:$PORT"
     echo "  • Cloudflare: https://$DOMAIN"
     echo ""
+    print_info "🔧 Servicios internos:"
+    echo "  • Backend API: http://localhost:$PORT/trpc"
+    echo "  • Health Check: http://localhost:$PORT/nginx-health"
+    echo ""
     print_info "📊 Para ver logs en tiempo real:"
     echo "  ./start.sh logs"
     echo ""
@@ -117,12 +138,17 @@ show_help() {
     echo ""
     echo "Comandos disponibles:"
     echo "  build     - Construir imágenes Docker"
-    echo "  start     - Iniciar servicios"
+    echo "  start     - Iniciar servicios (frontend + backend + nginx)"
     echo "  stop      - Detener servicios"
     echo "  restart   - Reiniciar servicios"
     echo "  logs      - Mostrar logs en tiempo real"
     echo "  status    - Mostrar estado de servicios"
     echo "  help      - Mostrar esta ayuda"
+    echo ""
+    echo "Servicios incluidos:"
+    echo "  • Frontend (React + Vite)"
+    echo "  • Backend (tRPC + Hono)"
+    echo "  • Nginx (Proxy reverso)"
     echo ""
     echo "Si no se especifica comando, se ejecutará 'start'"
 }

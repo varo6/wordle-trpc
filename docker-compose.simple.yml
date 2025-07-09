@@ -1,29 +1,59 @@
-version: '3.8'
-
 services:
-  wordle-app:
+  # Backend tRPC Server
+  server:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: runner
-    ports:
-      - "53880:3000"
+      dockerfile: Dockerfile.simple
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - CORS_ORIGIN=https://trustlabwordle.alvarohr.es,http://localhost:53880,http://localhost:3000
+      - CORS_ORIGIN=https://trustlabwordle.alvarohr.es,http://localhost:53880,http://localhost:3000,http://localhost:3001
       - DATABASE_URL=file:./local.db
+      - TRUST_PROXY=true
     volumes:
+      - wordle_db:/app/apps/server
       - ./data:/app/data
-      - ./apps/server/local.db:/app/local.db
-    restart: unless-stopped
+    networks:
+      - wordle-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
+  # Frontend Web App
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=http://server:3000
+      - VITE_TRPC_URL=http://server:3000/trpc
+    networks:
+      - wordle-network
+    depends_on:
+      - server
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "53880:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - server
+      - web
+    networks:
+      - wordle-network
+    restart: unless-stopped
+
 volumes:
-  wordle_data:
+  wordle_db:
     driver: local
+
+networks:
+  wordle-network:
+    driver: bridge

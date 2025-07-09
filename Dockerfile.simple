@@ -1,9 +1,15 @@
-# Dockerfile simplificado para deploy casero con Cloudflare tunnel
-FROM oven/bun:1.2.17-alpine AS base
-WORKDIR /app
+# Dockerfile simplificado para monorepo Wordle tRPC
+FROM oven/bun:1.2.17-alpine
 
 # Instalar dependencias del sistema
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl dumb-init
+
+# Crear directorio de trabajo
+WORKDIR /app
+
+# Crear usuario no-root
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 wordle
 
 # Copiar archivos de configuración
 COPY package.json bun.lock* turbo.json ./
@@ -14,17 +20,15 @@ COPY apps/web/package.json ./apps/web/
 RUN bun install --frozen-lockfile
 
 # Copiar código fuente
-COPY apps/ ./apps/
+COPY . .
 
-# Construir las aplicaciones
+# Construir aplicaciones
 RUN bun run build
 
-# Crear usuario no-root
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 wordle
+# Crear directorio para datos
+RUN mkdir -p /app/data && chown -R wordle:nodejs /app
 
-# Cambiar permisos
-RUN chown -R wordle:nodejs /app
+# Cambiar a usuario no-root
 USER wordle
 
 # Exponer puerto
@@ -35,8 +39,11 @@ ENV NODE_ENV=production
 ENV PORT=3000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:3000/health || exit 1
 
-# Comando por defecto
-CMD ["bun", "run", "apps/server/dist/src/index.js"]
+# Usar dumb-init para manejar señales correctamente
+ENTRYPOINT ["dumb-init", "--"]
+
+# Comando por defecto - intentar diferentes rutas posibles
+CMD ["sh", "-c", "if [ -f './apps/server/dist/index.js' ]; then bun run ./apps/server/dist/index.js; elif [ -f './apps/server/dist/src/index.js' ]; then bun run ./apps/server/dist/src/index.js; else bun run apps/server/src/index.ts; fi"]

@@ -1,0 +1,113 @@
+# Dockerfile para frontend Web App (Vite + React)
+FROM oven/bun:1.2.17-alpine AS builder
+
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apk add --no-cache curl
+
+# Copiar archivos de configuración del monorepo
+COPY package.json bun.lock* turbo.json ./
+COPY apps/web/package.json ./apps/web/
+COPY apps/server/package.json ./apps/server/
+
+# Instalar dependencias
+RUN bun install --frozen-lockfile
+
+# Copiar código fuente
+COPY . .
+
+# Construir aplicaciones (turbo build construye todo el monorepo)
+RUN bun run build
+
+# Producción: servir con nginx
+FROM nginx:alpine
+
+# Instalar curl para health checks
+RUN apk add --no-cache curl
+
+# Copiar archivos construidos
+COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+
+# Crear configuración de nginx
+RUN cat > /etc/nginx/nginx.conf << 'EOF'
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types
+        text/plain
+        text/css
+        text/xml
+        text/javascript
+        application/json
+        application/javascript
+        application/xml+rss
+        application/atom+xml
+        image/svg+xml;
+
+    server {
+        listen 80;
+        server_name _;
+
+        root /usr/share/nginx/html;
+        index index.html;
+
+        # Handle client-side routing
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+
+        # API proxy to backend
+        location /trpc {
+            proxy_pass http://server:3000;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_cache_bypass $http_upgrade;
+        }
+
+        # Health check endpoint
+        location /health {
+            access_log off;
+            return 200 "healthy\n";
+            add_header Content-Type text/plain;
+        }
+
+        # Cache static assets
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
+    }
+}
+EOF
+
+# Exponer puerto
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/health || exit 1
+
+# Comando por defecto
+CMD ["nginx", "-g", "daemon off;"]
