@@ -6,6 +6,8 @@ WORKDIR /app
 # Instalar dependencias del sistema
 RUN apk add --no-cache curl
 
+
+
 # Copiar archivos de configuración del monorepo
 COPY package.json bun.lock* turbo.json ./
 COPY apps/web/package.json ./apps/web/
@@ -75,7 +77,7 @@ http {
 
         # API proxy to backend
         location /trpc {
-            proxy_pass http://server:3000;
+            proxy_pass http://server:3000/trpc;
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection 'upgrade';
@@ -84,6 +86,16 @@ http {
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
             proxy_cache_bypass $http_upgrade;
+        }
+
+        # Auth proxy to backend
+        location /api/auth {
+            proxy_pass http://server:3000/api/auth;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
         }
 
         # Health check endpoint

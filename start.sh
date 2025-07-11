@@ -47,8 +47,8 @@ check_dependencies() {
         exit 1
     fi
 
-    if ! command -v docker-compose &> /dev/null; then
-        print_error "Docker Compose no está instalado"
+    if ! command -v docker &> /dev/null; then
+        print_error "Docker con soporte para compose no está instalado"
         exit 1
     fi
 
@@ -57,18 +57,18 @@ check_dependencies() {
 
 build_images() {
     print_info "Construyendo imágenes Docker..."
-    docker-compose -f $COMPOSE_FILE build --no-cache
+    docker compose -f $COMPOSE_FILE build --no-cache
     print_info "✅ Imágenes construidas"
 }
 
 start_services() {
     print_info "Iniciando servicios..."
-    docker-compose -f $COMPOSE_FILE up -d
+    docker compose -f $COMPOSE_FILE up -d
 
     print_info "⏳ Esperando que los servicios estén listos..."
     sleep 10
 
-    if docker-compose -f $COMPOSE_FILE ps | grep -q "Up"; then
+    if docker compose -f $COMPOSE_FILE ps | grep -q "Up"; then
         print_info "✅ Servicios iniciados correctamente"
 
         # Verificar que todos los servicios estén healthy
@@ -90,14 +90,14 @@ start_services() {
         show_status
     else
         print_error "❌ Error al iniciar servicios"
-        docker-compose -f $COMPOSE_FILE logs
+        docker compose -f $COMPOSE_FILE logs
         exit 1
     fi
 }
 
 stop_services() {
     print_info "Deteniendo servicios..."
-    docker-compose -f $COMPOSE_FILE down
+    docker compose -f $COMPOSE_FILE down
     print_info "✅ Servicios detenidos"
 }
 
@@ -109,12 +109,12 @@ restart_services() {
 
 show_logs() {
     print_info "Mostrando logs..."
-    docker-compose -f $COMPOSE_FILE logs -f
+    docker compose -f $COMPOSE_FILE logs -f
 }
 
 show_status() {
     print_info "Estado de los servicios:"
-    docker-compose -f $COMPOSE_FILE ps
+    docker compose -f $COMPOSE_FILE ps
 
     echo ""
     print_info "🌐 URLs de acceso:"

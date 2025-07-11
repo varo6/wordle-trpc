@@ -7,7 +7,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - CORS_ORIGIN=https://trustlabwordle.alvarohr.es,http://localhost:53880,http://localhost:3000,http://localhost:3001
+      - cors_origin=https://trustlabwordle.alvarohr.es,http://localhost:53880,http://localhost:3000,http://localhost:3001
       - DATABASE_URL=file:./local.db
       - TRUST_PROXY=true
     volumes:
@@ -29,8 +29,6 @@ services:
       dockerfile: Dockerfile.web
     environment:
       - NODE_ENV=production
-      - VITE_API_URL=http://server:3000
-      - VITE_TRPC_URL=http://server:3000/trpc
     networks:
       - wordle-network
     depends_on:

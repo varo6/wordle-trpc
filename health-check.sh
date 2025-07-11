@@ -91,12 +91,12 @@ test_docker_services() {
     fi
 
     # Verificar si los servicios están corriendo
-    if docker-compose -f $COMPOSE_FILE ps 2>/dev/null | grep -q "Up"; then
+    if docker compose -f $COMPOSE_FILE ps 2>/dev/null | grep -q "Up"; then
         print_success "Servicios Docker están corriendo"
 
         # Mostrar estado detallado
         print_info "Estado de contenedores:"
-        docker-compose -f $COMPOSE_FILE ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+        docker compose -f $COMPOSE_FILE ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
     else
         print_failure "Servicios Docker no están corriendo"
         print_info "Usa './start.sh start' para iniciar los servicios"
@@ -199,7 +199,7 @@ test_system_resources() {
 test_recent_logs() {
     print_test "Verificando logs recientes..."
 
-    if docker-compose -f $COMPOSE_FILE logs --tail=10 2>/dev/null | grep -i error; then
+    if docker compose -f $COMPOSE_FILE logs --tail=10 2>/dev/null | grep -i error; then
         print_warning "Se encontraron errores en logs recientes"
     else
         print_success "No se encontraron errores en logs recientes"

@@ -4,7 +4,7 @@ Guía completa para hacer deploy de Wordle tRPC en tu minipc con Cloudflare Tunn
 
 ## 📋 Prerequisitos
 
-- Docker y Docker Compose instalados
+- Docker con soporte para compose instalado
 - Puerto 53880 disponible en tu minipc
 - Cloudflare Tunnel configurado hacia `trustlabwordle.alvarohr.es`
 - Git (para clonar el proyecto)
@@ -151,6 +151,9 @@ sudo systemctl restart docker
 # Verificar permisos
 sudo usermod -aG docker $USER
 # (requiere logout/login)
+
+# Verificar soporte para compose
+docker compose version
 ```
 
 ### Problema: CORS errors
@@ -257,3 +260,5 @@ Si tienes problemas:
 ¡Listo para usar! 🎉
 
 El deploy debería ser tan simple como ejecutar `./start.sh` y esperar a que esté todo listo.
+
+**Nota:** Este setup utiliza `docker compose` (la nueva sintaxis) en lugar de `docker-compose`. Si tu sistema solo tiene la versión antigua, puedes instalar la nueva versión siguiendo las instrucciones oficiales de Docker.
