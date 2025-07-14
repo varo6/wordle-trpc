@@ -1,25 +1,10 @@
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { Terminal, Cpu, Binary, Code2 } from "lucide-react";
-
+import { saveGameState, loadGameState, hasSavedGame } from "@/lib/cookies";
 import { trpc } from "@/utils/trpc";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import {
-  saveGameState,
-  loadGameState,
-  clearGameState,
-  hasSavedGame,
-} from "@/lib/cookies";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Binary, Code2, Terminal } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/words")({
   component: WordsRoute,
@@ -80,13 +65,7 @@ function WordsRoute() {
       // Pass the current guess to the mutation
       tryWordMutation.mutate(submittedGuess, {
         onSuccess: (data) => {
-          console.log("Mutation result:", data);
-          console.log(
-            "Submitted guess:",
-            submittedGuess,
-            "Row:",
-            submittedRowIndex,
-          );
+          console.log(data);
 
           if (!data.isValid) {
             setResult("Palabra no encontrada en el diccionario");
@@ -109,8 +88,6 @@ function WordsRoute() {
             }));
 
             newBoard[submittedRowIndex] = updatedRow;
-            console.log("Setting board with new row:", updatedRow);
-            console.log("Full board after update:", newBoard);
 
             setGameBoard(newBoard);
 
@@ -262,39 +239,24 @@ function WordsRoute() {
 
   // Update the game board display to show the current guess
   useEffect(() => {
-    // Don't update if game is completed or if we're beyond valid rows
-    if (isCompleted || currentRow >= 6) return;
-
-    console.log(
-      "useEffect running - currentGuess:",
-      currentGuess,
-      "currentRow:",
-      currentRow,
-    );
-
     const newBoard = [...gameBoard];
-    const currentRowData = newBoard[currentRow];
-
-    // Check if current row has already been submitted (has status)
-    const rowHasStatus =
-      currentRowData && currentRowData.some((cell) => cell.status !== null);
-
-    console.log("Current row has status:", rowHasStatus);
-
-    if (!rowHasStatus) {
+    // Only update the current row if it's within bounds and hasn't been submitted
+    if (currentRow < 6 && !isCompleted) {
       const guessArray = currentGuess.split("");
-      const rowToUpdate = Array(5)
-        .fill(null)
-        .map((_, index) => ({
-          letter: guessArray[index] || "",
-          status: null,
-        }));
+      const rowToUpdate = Array(5).fill({ letter: "", status: null });
 
-      newBoard[currentRow] = rowToUpdate;
-      console.log("Updating current row with:", rowToUpdate);
-      setGameBoard(newBoard);
+      // Add the current guess characters to the row
+      guessArray.forEach((char, index) => {
+        rowToUpdate[index] = { letter: char, status: null };
+      });
+
+      // Only update if this row hasn't been submitted yet (no status set)
+      if (!newBoard[currentRow] || !newBoard[currentRow][0]?.status) {
+        newBoard[currentRow] = rowToUpdate;
+        setGameBoard(newBoard);
+      }
     }
-  }, [currentGuess, currentRow, isCompleted, gameBoard]);
+  }, [currentGuess, currentRow, isCompleted]);
 
   // Load saved game state when component mounts
   useEffect(() => {
@@ -470,13 +432,6 @@ function WordsRoute() {
                     let bgColor = "bg-white";
                     let textColor = "text-gray-900";
                     let borderColor = "border-gray-300";
-
-                    // Debug: log cell state for completed rows
-                    if (rowIndex < currentRow || (isCompleted && cell.letter)) {
-                      console.log(
-                        `Cell [${rowIndex}][${cellIndex}]: letter="${cell.letter}", status="${cell.status}"`,
-                      );
-                    }
 
                     if (rowIndex === currentRow && !isCompleted) {
                       borderColor = "border-blue-400";
