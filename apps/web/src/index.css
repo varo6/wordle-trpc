@@ -4,17 +4,23 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Inter", "Geist", ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-sans:
+    "Inter", "Geist", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
-
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
-  }
+  @apply bg-white;
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  /* Mobile viewport fixes */
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  margin: 0;
+  padding: 0;
 }
 
 :root {
@@ -130,5 +136,667 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    /* Prevent bounce scrolling on iOS */
+    overscroll-behavior: none;
+    /* Improve touch responsiveness */
+    touch-action: manipulation;
+  }
+}
+
+/* ===== WORDLE GAME BOARD RESPONSIVE STYLES ===== */
+.wordle-game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 0.5rem;
+  margin: 0 auto;
+  max-width: 500px;
+  min-height: 100vh;
+}
+
+.wordle-board {
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0.75rem;
+}
+
+.wordle-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.wordle-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 1.25rem;
+  text-transform: uppercase;
+
+  background-color: white;
+  transition: all 0.2s ease-in-out;
+  min-height: 70px;
+  min-width: 70px;
+}
+
+.wordle-cell.filled {
+  border-color: #6b7280;
+  background-color: #f9fafb;
+}
+
+.wordle-cell.correct {
+  background-color: #10b981;
+  border-color: #10b981;
+  color: white;
+}
+
+.wordle-cell.almost {
+  background-color: #f59e0b;
+  border-color: #f59e0b;
+  color: white;
+}
+
+.wordle-cell.wrong {
+  background-color: #6b7280;
+  border-color: #6b7280;
+  color: white;
+}
+
+/* ===== MOBILE RESPONSIVE OPTIMIZATIONS ===== */
+@media (max-width: 640px) {
+  .wordle-game-container {
+    padding: 0;
+    max-width: 100vw;
+    width: 100vw;
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height for mobile */
+    justify-content: space-between;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  .wordle-board {
+    max-width: calc(100vw - 2rem);
+    width: calc(100vw - 2rem);
+    gap: 0.125rem;
+    padding: 0.5rem;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  .wordle-row {
+    gap: 0.125rem;
+    justify-content: center;
+  }
+
+  .wordle-cell {
+    min-height: 45px;
+    min-width: 45px;
+    max-width: calc((100vw - 4rem) / 5 - 0.125rem);
+    font-size: 1rem;
+    border-radius: 0.25rem;
+  }
+
+  /* Improve touch targets on mobile */
+  button,
+  input,
+  [role="button"] {
+    min-height: 40px;
+    min-width: 40px;
+  }
+
+  /* Better spacing for mobile */
+  .space-y-1 > * + * {
+    margin-top: 0.25rem;
+  }
+
+  /* Prevent horizontal scrolling */
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Better game board container */
+  .game-board-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 0 0.25rem;
+  }
+
+  /* Optimize font sizes for mobile readability */
+  .font-mono {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+
+  /* Better card spacing on mobile */
+  .card {
+    margin: 0.5rem;
+  }
+
+  /* Improve button spacing */
+  .btn-mobile {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  /* Mobile main container optimization */
+  main {
+    padding: 0.5rem;
+    max-width: 100vw;
+    width: 100vw;
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    /* Handle iOS Safari bottom bar */
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+
+  /* Mobile keyboard optimization */
+  .mobile-keyboard {
+    margin-top: auto;
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    /* Ensure keyboard doesn't get cut off */
+    margin-bottom: env(safe-area-inset-bottom, 0);
+    width: 100%;
+    max-width: calc(100vw - 1rem);
+    overflow-x: hidden;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .mobile-keyboard button {
+    height: 44px;
+    min-height: 44px;
+    font-size: 0.75rem;
+  }
+
+  .mobile-keyboard .flex {
+    justify-content: center;
+    gap: 0.125rem !important;
+  }
+
+  /* Compact mobile status bar */
+  .mobile-status-bar {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Mobile game board wrapper */
+  .mobile-game-board {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .wordle-game-container {
+    padding: 0.125rem;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .wordle-board {
+    max-width: 300px;
+    gap: 0.1875rem;
+  }
+
+  .wordle-row {
+    gap: 0.1875rem;
+  }
+
+  .wordle-cell {
+    min-height: 55px;
+    min-width: 55px;
+    font-size: 1.125rem;
+    border-width: 1px;
+  }
+
+  /* Extra small screens */
+  .font-mono {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  /* Smaller padding for containers */
+  .container-mobile {
+    padding: 0.25rem;
+  }
+
+  /* Reduce main container padding */
+  main {
+    padding: 0.25rem;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-bottom: max(0.25rem, env(safe-area-inset-bottom));
+  }
+
+  /* Compact virtual keyboard for very small screens */
+  .mobile-keyboard button {
+    height: 3rem;
+    font-size: 0.875rem;
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  /* Reduce status bar height */
+  .mobile-status-bar {
+    padding: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
+}
+
+/* Very small screens (iPhone SE, etc.) */
+@media (max-width: 375px) {
+  .wordle-board {
+    max-width: 280px;
+  }
+
+  .wordle-cell {
+    min-height: 45px;
+    min-width: 45px;
+    font-size: 0.9rem;
+  }
+
+  /* Ultra compact keyboard */
+  .mobile-keyboard button {
+    height: 2.75rem;
+    font-size: 0.8rem;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Minimize all spacing */
+  main {
+    padding: 0.125rem;
+  }
+
+  .mobile-status-bar {
+    padding: 0.125rem;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 320px) {
+  .wordle-board {
+    max-width: 260px;
+  }
+
+  .wordle-cell {
+    min-height: 42px;
+    min-width: 42px;
+    font-size: 0.8rem;
+  }
+
+  /* Minimal keyboard for 320px screens */
+  .mobile-keyboard button {
+    height: 2.5rem;
+    font-size: 0.75rem;
+    min-height: 40px;
+    min-width: 40px;
+  }
+
+  /* Minimize container padding */
+  .wordle-game-container {
+    padding: 0;
+  }
+
+  main {
+    padding: 0.0625rem;
+  }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 896px) and (orientation: landscape) {
+  .wordle-game-container {
+    padding: 0.125rem;
+    min-height: 100vh;
+  }
+
+  .wordle-board {
+    max-width: 320px;
+  }
+
+  .wordle-cell {
+    min-height: 40px;
+    min-width: 40px;
+    font-size: 1rem;
+  }
+
+  /* Reduce vertical padding in landscape */
+  .py-4 {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+
+  /* Compact game board for landscape */
+  .game-board-landscape {
+    max-height: 60vh;
+  }
+
+  /* Landscape keyboard optimization */
+  .mobile-keyboard {
+    margin-top: 0.25rem;
+  }
+
+  .mobile-keyboard button {
+    height: 2.25rem;
+    font-size: 0.875rem;
+    min-height: 36px;
+    min-width: 36px;
+  }
+
+  /* Compact status bar in landscape */
+  .mobile-status-bar {
+    padding: 0.125rem;
+    margin-bottom: 0.125rem;
+  }
+
+  main {
+    padding: 0.125rem;
+    min-height: 100vh;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices */
+  .hover\:bg-blue-50:hover {
+    background-color: inherit;
+  }
+
+  /* Larger touch targets */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Better focus styles for accessibility */
+  button:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+
+  /* Improve touch responsiveness */
+  .wordle-cell,
+  button {
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* Fix iOS Safari zoom on input focus */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Light theme optimization for wordle cells */
+.wordle-cell {
+  background-color: #ffffff;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.wordle-cell.filled {
+  background-color: #f9fafb;
+  border-color: #6b7280;
+}
+
+/* Ensure proper centering across all screen sizes */
+.game-board-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0 0.5rem;
+}
+
+.game-board-inner {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+@media (min-width: 641px) {
+  .game-board-inner {
+    max-width: 550px;
+  }
+
+  .wordle-board {
+    max-width: 550px;
+    gap: 0.625rem;
+  }
+
+  .wordle-row {
+    gap: 0.625rem;
+  }
+
+  .wordle-cell {
+    min-height: 90px;
+    min-width: 90px;
+    font-size: 2.25rem;
+  }
+
+  /* PC message visibility improvements */
+  .mobile-status-bar {
+    margin-bottom: 2rem;
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  /* PC game messages */
+  .pc-message {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    font-size: 1.125rem;
+  }
+
+  /* PC legend spacing */
+  .mobile-game-section {
+    gap: 2rem;
+  }
+}
+
+/* Utility classes for wordle game */
+.wordle-centered {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.wordle-container {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 1rem;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  /* Handle safe areas */
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 640px) {
+  .wordle-container {
+    padding: 0.25rem;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-left: max(0.25rem, env(safe-area-inset-left));
+    padding-right: max(0.25rem, env(safe-area-inset-right));
+    padding-bottom: max(0.25rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Mobile-specific layout helpers */
+.mobile-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* PC-specific message improvements */
+@media (min-width: 769px) {
+  .mobile-status-bar {
+    margin-bottom: 2rem !important;
+    margin-top: 1.5rem !important;
+    padding: 1.5rem !important;
+    font-size: 1rem !important;
+  }
+
+  /* Error and success messages on PC */
+  .pc-message-container {
+    margin: 2rem auto !important;
+    padding: 1.5rem !important;
+    max-width: 600px;
+  }
+
+  .pc-message-container p {
+    font-size: 1.125rem !important;
+  }
+
+  .pc-message-container button {
+    font-size: 1rem !important;
+    padding: 0.75rem 1.5rem !important;
+    margin-top: 1rem !important;
+  }
+
+  /* Saved game notice on PC */
+  .pc-saved-notice {
+    margin: 1.5rem auto 2rem auto !important;
+    padding: 1.5rem !important;
+    font-size: 1rem !important;
+  }
+}
+</text > .mobile-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.25rem;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.mobile-game-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.mobile-keyboard-section {
+  margin-top: auto;
+  padding-bottom: env(safe-area-inset-bottom);
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  .mobile-content {
+    padding: 0.125rem;
+    max-width: 100vw;
+  }
+
+  .mobile-game-section {
+    gap: 0.5rem;
+    padding: 0 0.125rem;
+  }
+
+  /* Ensure proper spacing on very small screens */
+  .mobile-keyboard button {
+    min-height: 40px;
+    min-width: 30px;
+    max-width: calc((100vw - 2rem) / 10);
+    font-size: 0.7rem;
+    padding: 0.125rem 0.25rem;
+  }
+
+  /* Force mobile keyboard to fit */
+  .mobile-keyboard {
+    max-width: calc(100vw - 1rem);
+    padding: 0 0.5rem;
+    margin: 0 auto;
+  }
+
+  .mobile-keyboard .flex {
+    gap: 0.125rem !important;
+    justify-content: center;
+  }
+
+  /* Ensure game board fits */
+  .mobile-game-board {
+    width: 100%;
+    max-width: calc(100vw - 1rem);
+    padding: 0;
+    margin: 0 auto;
+  }
+
+  /* Mobile keyboard special keys */
+  .mobile-keyboard button[class*="flex-[1.5]"] {
+    min-width: calc((100vw - 2rem) / 8);
+    max-width: calc((100vw - 2rem) / 6);
+  }
+
+  /* Compact legend on mobile */
+  .mobile-legend {
+    gap: 0.25rem;
+  }
+
+  .mobile-legend .legend-item {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+  }
+
+  .mobile-legend .legend-square {
+    width: 12px;
+    height: 12px;
+  }
+
+  .mobile-legend .legend-text {
+    font-size: 0.625rem;
+    line-height: 0.75rem;
+    text-align: center;
   }
 }

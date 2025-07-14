@@ -83,7 +83,7 @@ function WordsRoute() {
           console.log(data);
 
           if (!data.isValid) {
-            setResult("Word not in dictionary");
+            setResult("Palabra no encontrada en el diccionario");
             // Trigger shake animation for invalid word
             setShakeRow(submittedRowIndex);
             setTimeout(() => setShakeRow(null), 600); // Remove shake after animation
@@ -126,7 +126,7 @@ function WordsRoute() {
             // Handle row advancement or win/loss
             setResult(null);
             if (data.isCorrect) {
-              setResult("You won! Congratulations!");
+              setResult("¡Ganaste! ¡Felicitaciones!");
               setGameOver(true);
               setIsCompleted(true);
               setWon(true);
@@ -181,7 +181,7 @@ function WordsRoute() {
                 setGameOver(true);
                 setIsCompleted(true);
                 setWon(false);
-                setResult("Game Over! Better luck next time.");
+                setResult("¡Juego terminado! Mejor suerte la próxima vez.");
 
                 // Save game result for loss and redirect to result page
                 const gameResult = {
@@ -212,7 +212,7 @@ function WordsRoute() {
 
                 // Show loading message before redirect
                 setTimeout(() => {
-                  setResult("Preparing results...");
+                  setResult("Preparando resultados...");
                 }, 1500);
 
                 // Redirect after showing the loss message and loading state
@@ -288,8 +288,8 @@ function WordsRoute() {
         if (savedState.isCompleted) {
           setResult(
             savedState.won
-              ? "You won! Congratulations!"
-              : "Game Over! Better luck next time.",
+              ? "¡Ganaste! ¡Felicitaciones!"
+              : "¡Juego terminado! Mejor suerte la próxima vez.",
           );
         }
 
@@ -367,7 +367,7 @@ function WordsRoute() {
   }, [currentGuess, currentRow, gameBoard, gameOver, isCompleted]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="mobile-layout min-h-screen bg-white w-full overflow-x-hidden">
       {/* CSS for shake animation */}
       <style>{`
         @keyframes shake {
@@ -389,131 +389,143 @@ function WordsRoute() {
       `}</style>
 
       {/* Game Container */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Status Bar */}
-        <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-mono">
-              <Code2 className="w-4 h-4 text-blue-600" />
-              <span className="text-blue-700">SYSTEM STATUS:</span>
-              <span className="text-blue-600 animate-pulse">
-                READY_FOR_INPUT
-              </span>
-            </div>
-            {minutesToEpoch && (
-              <div className="flex items-center gap-2 text-sm font-mono">
-                <Terminal className="w-4 h-4 text-blue-600" />
-                <span className="text-blue-700">NEXT_WORD_IN:</span>
-                <span className="text-blue-600 font-bold">
-                  {Math.floor(minutesToEpoch / 60)}h {minutesToEpoch % 60}m
+      <main className="mobile-content w-full max-w-full mx-auto overflow-x-hidden">
+        <div className="mobile-game-section">
+          {/* Status Bar */}
+          <div className="mobile-status-bar mb-4 sm:mb-6 lg:mb-8 mt-2 sm:mt-4 lg:mt-6 p-3 sm:p-4 lg:p-6 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex flex-col items-center sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 lg:gap-6">
+              <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 text-sm sm:text-base lg:text-lg font-mono text-center sm:text-left">
+                <Code2 className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-blue-600" />
+                <span className="text-blue-700">ESTADO DEL SISTEMA:</span>
+                <span className="text-blue-600 animate-pulse">
+                  LISTO_PARA_ENTRADA
                 </span>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Saved Game Notice */}
-        {showSavedGameNotice && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center gap-2 text-sm font-mono">
-              <Binary className="w-4 h-4 text-green-600" />
-              <span className="text-green-700">GAME_RESTORED:</span>
-              <span className="text-green-600">
-                Previous session loaded from cache
-              </span>
+              {minutesToEpoch && (
+                <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 text-sm sm:text-base lg:text-lg font-mono text-center sm:text-left">
+                  <Terminal className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-blue-600" />
+                  <span className="text-blue-700">PRÓXIMA_PALABRA_EN:</span>
+                  <span className="text-blue-600 font-bold">
+                    {Math.floor(minutesToEpoch / 60)}h {minutesToEpoch % 60}m
+                  </span>
+                </div>
+              )}
             </div>
           </div>
-        )}
 
-        {/* Game Board */}
-        <div className="mb-8">
-          <div className="grid grid-rows-6 gap-2 max-w-sm mx-auto">
-            {gameBoard.map((row, rowIndex) => (
-              <div
-                key={rowIndex}
-                className={`grid grid-cols-5 gap-2 ${
-                  shakeRow === rowIndex ? "animate-shake" : ""
-                }`}
-              >
-                {row.map((cell, cellIndex) => {
-                  let bgColor = "bg-white";
-                  let textColor = "text-gray-900";
-                  let borderColor = "border-gray-300";
-
-                  if (rowIndex === currentRow && !isCompleted) {
-                    borderColor = "border-blue-400";
-                  } else if (cell.status === "ok") {
-                    bgColor = "bg-blue-500";
-                    textColor = "text-white";
-                    borderColor = "border-blue-600";
-                  } else if (cell.status === "almost") {
-                    bgColor = "bg-blue-200";
-                    borderColor = "border-blue-300";
-                  } else if (cell.status === "no" && cell.letter) {
-                    bgColor = "bg-gray-200";
-                    borderColor = "border-gray-300";
-                  } else if (!cell.letter) {
-                    bgColor = "bg-gray-50";
-                  }
-
-                  return (
-                    <div
-                      key={cellIndex}
-                      className={`
-                       aspect-square border-2 rounded-lg flex items-center justify-center
-                       font-mono text-2xl font-bold transition-all duration-300
-                       ${borderColor} ${bgColor} ${textColor}
-                       hover:border-blue-300 relative overflow-hidden group
-                     `}
-                    >
-                      {/* Hacky grid effect */}
-                      <div className="absolute inset-0 opacity-5">
-                        <div className="absolute inset-0 bg-[linear-gradient(0deg,transparent_24%,rgba(59,130,246,0.05)_25%,rgba(59,130,246,0.05)_26%,transparent_27%,transparent_74%,rgba(59,130,246,0.05)_75%,rgba(59,130,246,0.05)_76%,transparent_77%,transparent),linear-gradient(90deg,transparent_24%,rgba(59,130,246,0.05)_25%,rgba(59,130,246,0.05)_26%,transparent_27%,transparent_74%,rgba(59,130,246,0.05)_75%,rgba(59,130,246,0.05)_76%,transparent_77%,transparent)] bg-[length:20px_20px]" />
-                      </div>
-
-                      {/* Letter display */}
-                      <span className="relative z-10">{cell.letter}</span>
-
-                      {/* Glitch effect on hover */}
-                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                        <div className="absolute inset-0 bg-blue-400 opacity-10 animate-pulse" />
-                      </div>
-                    </div>
-                  );
-                })}
+          {/* Saved Game Notice */}
+          {showSavedGameNotice && (
+            <div className="pc-saved-notice mb-4 sm:mb-6 lg:mb-8 mt-2 sm:mt-4 lg:mt-6 p-3 sm:p-4 lg:p-6 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex flex-col items-center sm:flex-row sm:items-center gap-2 sm:gap-3 lg:gap-4 text-sm sm:text-base lg:text-lg font-mono text-center sm:text-left">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Binary className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-green-600" />
+                  <span className="text-green-700">JUEGO_RESTAURADO:</span>
+                </div>
+                <span className="text-green-600">
+                  Sesión anterior cargada desde caché
+                </span>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Completed Game Message and View Results Button */}
-        {isCompleted && (
-          <div className="mb-6 mt-6 p-4 border rounded-lg bg-green-50 border-green-200 text-center">
-            <p className="font-mono text-green-700">{result}</p>
-            <Button
-              onClick={() => navigate({ to: "/result" })}
-              className="mt-4 font-mono bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Ver Resultados
-            </Button>
-          </div>
-        )}
-
-        {/* Error Message */}
-        {result !== null &&
-          typeof result === "string" &&
-          result !== "You won! Congratulations!" &&
-          !isCompleted && (
-            <div className="mb-6 p-4 border rounded-lg bg-red-50 border-red-200 text-center">
-              <p className="font-mono text-red-700">{result}</p>
             </div>
           )}
 
+          {/* Game Board */}
+          <div className="mobile-game-board mb-2 sm:mb-4 flex justify-center w-full px-1 sm:px-4">
+            <div className="wordle-board grid grid-rows-6 gap-1 sm:gap-3 w-full max-w-[300px] sm:max-w-[500px] lg:max-w-[550px] mx-auto">
+              {gameBoard.map((row, rowIndex) => (
+                <div
+                  key={rowIndex}
+                  className={`wordle-row grid grid-cols-5 gap-1 sm:gap-3 ${
+                    shakeRow === rowIndex ? "animate-shake" : ""
+                  }`}
+                >
+                  {row.map((cell, cellIndex) => {
+                    let bgColor = "bg-white";
+                    let textColor = "text-gray-900";
+                    let borderColor = "border-gray-300";
+
+                    if (rowIndex === currentRow && !isCompleted) {
+                      borderColor = "border-blue-400";
+                    } else if (cell.status === "ok") {
+                      bgColor = "bg-blue-500";
+                      textColor = "text-white";
+                      borderColor = "border-blue-600";
+                    } else if (cell.status === "almost") {
+                      bgColor = "bg-blue-200";
+                      borderColor = "border-blue-300";
+                    } else if (cell.status === "no" && cell.letter) {
+                      bgColor = "bg-gray-200";
+                      borderColor = "border-gray-300";
+                    } else if (!cell.letter) {
+                      bgColor = "bg-gray-50";
+                    }
+
+                    return (
+                      <div
+                        key={cellIndex}
+                        className={`
+                         wordle-cell aspect-square border-2 rounded-lg flex items-center justify-center
+                         font-mono text-xl sm:text-2xl lg:text-3xl font-bold transition-all duration-300
+                         ${borderColor} ${bgColor} ${textColor}
+                         hover:border-blue-300 relative overflow-hidden group
+                         min-h-[50px] min-w-[50px] sm:min-h-[70px] sm:min-w-[70px] lg:min-h-[85px] lg:min-w-[85px]
+                       `}
+                      >
+                        {/* Hacky grid effect */}
+                        <div className="absolute inset-0 opacity-5">
+                          <div className="absolute inset-0 bg-[linear-gradient(0deg,transparent_24%,rgba(59,130,246,0.05)_25%,rgba(59,130,246,0.05)_26%,transparent_27%,transparent_74%,rgba(59,130,246,0.05)_75%,rgba(59,130,246,0.05)_76%,transparent_77%,transparent),linear-gradient(90deg,transparent_24%,rgba(59,130,246,0.05)_25%,rgba(59,130,246,0.05)_26%,transparent_27%,transparent_74%,rgba(59,130,246,0.05)_75%,rgba(59,130,246,0.05)_76%,transparent_77%,transparent)] bg-[length:20px_20px]" />
+                        </div>
+
+                        {/* Letter display */}
+                        <span className="relative z-10">{cell.letter}</span>
+
+                        {/* Glitch effect on hover */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                          <div className="absolute inset-0 bg-blue-400 opacity-10 animate-pulse" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Completed Game Message and View Results Button */}
+          {isCompleted && (
+            <div className="pc-message-container mb-4 sm:mb-6 lg:mb-8 mt-4 sm:mt-6 lg:mt-8 p-3 sm:p-4 lg:p-6 border rounded-lg bg-green-50 border-green-200 text-center">
+              <p className="font-mono text-sm sm:text-base lg:text-lg text-green-700">
+                {result}
+              </p>
+              <Button
+                onClick={() => navigate({ to: "/result" })}
+                className="mt-3 sm:mt-4 lg:mt-6 font-mono bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base lg:text-lg px-4 py-2 lg:px-6 lg:py-3"
+              >
+                Ver Resultados
+              </Button>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {result !== null &&
+            typeof result === "string" &&
+            result !== "¡Ganaste! ¡Felicitaciones!" &&
+            !isCompleted && (
+              <div className="pc-message-container mb-4 sm:mb-6 lg:mb-8 mt-4 sm:mt-6 lg:mt-8 p-3 sm:p-4 lg:p-6 border rounded-lg bg-red-50 border-red-200 text-center">
+                <p className="font-mono text-sm sm:text-base lg:text-lg text-red-700">
+                  {result}
+                </p>
+              </div>
+            )}
+        </div>
+
         {/* Virtual Keyboard (disabled if completed) */}
-        <div className="max-w-2xl mx-auto">
-          <div className="space-y-2">
+        <div className="mobile-keyboard-section w-full sm:max-w-3xl mx-auto px-1 sm:px-4 overflow-x-hidden">
+          <div className="mobile-keyboard space-y-1 sm:space-y-3">
             {keyboard.map((row, rowIndex) => (
-              <div key={rowIndex} className="flex justify-center gap-1.5">
+              <div
+                key={rowIndex}
+                className="flex w-full gap-0.5 sm:gap-2 justify-center"
+              >
                 {row.map((key) => {
                   const status = keyStatus[key];
                   let bgColor = "bg-white";
@@ -536,12 +548,13 @@ function WordsRoute() {
                       onClick={() => handleKeyPress(key)}
                       disabled={gameOver || isCompleted}
                       className={`
-                         ${key === "ENTER" || key === "DEL" ? "px-4" : "w-10"}
-                         h-12 ${bgColor} border-2 ${borderColor} rounded-lg
-                         font-mono font-semibold text-sm text-gray-900
+                         ${key === "ENTER" || key === "DEL" ? "flex-[1.5] sm:px-3 lg:px-4 min-w-[50px] sm:min-w-[70px] max-w-[80px]" : "flex-1 sm:w-10 lg:w-12 min-w-[32px] max-w-[50px]"}
+                         h-10 sm:h-16 lg:h-18 ${bgColor} border-2 ${borderColor} rounded-lg
+                         font-mono font-semibold text-xs sm:text-lg text-gray-900
                          ${gameOver || isCompleted ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-50 hover:border-blue-400 hover:shadow-md active:scale-95"}
                          transition-all duration-150
                          relative overflow-hidden group
+                         min-h-[44px] sm:min-h-[64px] lg:min-h-[72px] touch-manipulation
                        `}
                     >
                       {/* Tech pattern overlay */}
@@ -559,36 +572,36 @@ function WordsRoute() {
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Legend */}
-        <div className="mt-8 flex justify-center gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-500 rounded-lg border-2 border-blue-600" />
-            <span className="text-sm font-mono text-gray-600">
-              CORRECT (OK)
-            </span>
+          {/* Legend */}
+          <div className="mt-3 sm:mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center sm:gap-8 text-center px-2 sm:px-0">
+            <div className="flex items-center justify-center gap-2 sm:gap-3">
+              <div className="w-6 h-6 sm:w-10 sm:h-10 bg-blue-500 rounded border-2 border-blue-600" />
+              <span className="text-sm sm:text-base font-mono text-gray-600">
+                CORRECTO (OK)
+              </span>
+            </div>
+            <div className="flex items-center justify-center gap-2 sm:gap-3">
+              <div className="w-6 h-6 sm:w-10 sm:h-10 bg-blue-200 rounded border-2 border-blue-300" />
+              <span className="text-sm sm:text-base font-mono text-gray-600">
+                POSICIÓN_INCORRECTA (CASI)
+              </span>
+            </div>
+            <div className="flex items-center justify-center gap-2 sm:gap-3">
+              <div className="w-6 h-6 sm:w-10 sm:h-10 bg-gray-200 rounded border-2 border-gray-300" />
+              <span className="text-sm sm:text-base font-mono text-gray-600">
+                NO_ENCONTRADA (NO)
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-200 rounded-lg border-2 border-blue-300" />
-            <span className="text-sm font-mono text-gray-600">
-              WRONG_POS (ALMOST)
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gray-200 rounded-lg border-2 border-gray-300" />
-            <span className="text-sm font-mono text-gray-600">
-              NOT_FOUND (NO)
-            </span>
-          </div>
-        </div>
 
-        {/* Tech decoration */}
-        <div className="mt-12 text-center">
-          <div className="inline-flex items-center gap-2 text-xs font-mono text-blue-600">
-            <span className="animate-pulse">▓</span>
-            <span>TERMINAL.READY</span>
-            <span className="animate-pulse">▓</span>
+          {/* Tech decoration */}
+          <div className="mt-4 sm:mt-6 text-center">
+            <div className="inline-flex items-center gap-2 text-sm font-mono text-blue-600">
+              <span className="animate-pulse">▓</span>
+              <span>TERMINAL.LISTO</span>
+              <span className="animate-pulse">▓</span>
+            </div>
           </div>
         </div>
       </main>

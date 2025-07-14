@@ -48,7 +48,7 @@ function RootComponent() {
   return (
     <>
       <HeadContent />
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
         <div className="grid grid-rows-[auto_1fr] h-svh">
           <Header />
           {isFetching ? <Loader /> : <Outlet />}
