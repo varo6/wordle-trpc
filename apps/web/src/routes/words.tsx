@@ -80,9 +80,13 @@ function WordsRoute() {
       // Pass the current guess to the mutation
       tryWordMutation.mutate(submittedGuess, {
         onSuccess: (data) => {
-          console.log("Mutation success data:", data);
-          console.log("Current guess:", submittedGuess);
-          console.log("Current row index:", submittedRowIndex);
+          console.log("Mutation result:", data);
+          console.log(
+            "Submitted guess:",
+            submittedGuess,
+            "Row:",
+            submittedRowIndex,
+          );
 
           if (!data.isValid) {
             setResult("Palabra no encontrada en el diccionario");
@@ -99,13 +103,15 @@ function WordsRoute() {
             const guessArray = submittedGuess.split("");
 
             // Update the row with letter statuses
-            newBoard[submittedRowIndex] = guessArray.map((letter, index) => ({
+            const updatedRow = guessArray.map((letter, index) => ({
               letter,
               status: data.result[index],
             }));
 
-            console.log("Updated board row:", newBoard[submittedRowIndex]);
-            console.log("Full updated board:", newBoard);
+            newBoard[submittedRowIndex] = updatedRow;
+            console.log("Setting board with new row:", updatedRow);
+            console.log("Full board after update:", newBoard);
+
             setGameBoard(newBoard);
 
             // Update keyboard status
@@ -256,21 +262,39 @@ function WordsRoute() {
 
   // Update the game board display to show the current guess
   useEffect(() => {
-    const newBoard = [...gameBoard];
-    // Only update the current row if it's within bounds and hasn't been submitted
-    if (currentRow < 6 && !isCompleted) {
-      const guessArray = currentGuess.split("");
-      const rowToUpdate = Array(5).fill({ letter: "", status: null });
+    // Don't update if game is completed or if we're beyond valid rows
+    if (isCompleted || currentRow >= 6) return;
 
-      // Add the current guess characters to the row
-      guessArray.forEach((char, index) => {
-        rowToUpdate[index] = { letter: char, status: null };
-      });
+    console.log(
+      "useEffect running - currentGuess:",
+      currentGuess,
+      "currentRow:",
+      currentRow,
+    );
+
+    const newBoard = [...gameBoard];
+    const currentRowData = newBoard[currentRow];
+
+    // Check if current row has already been submitted (has status)
+    const rowHasStatus =
+      currentRowData && currentRowData.some((cell) => cell.status !== null);
+
+    console.log("Current row has status:", rowHasStatus);
+
+    if (!rowHasStatus) {
+      const guessArray = currentGuess.split("");
+      const rowToUpdate = Array(5)
+        .fill(null)
+        .map((_, index) => ({
+          letter: guessArray[index] || "",
+          status: null,
+        }));
 
       newBoard[currentRow] = rowToUpdate;
+      console.log("Updating current row with:", rowToUpdate);
       setGameBoard(newBoard);
     }
-  }, [currentGuess, currentRow, isCompleted]);
+  }, [currentGuess, currentRow, isCompleted, gameBoard]);
 
   // Load saved game state when component mounts
   useEffect(() => {
@@ -447,8 +471,8 @@ function WordsRoute() {
                     let textColor = "text-gray-900";
                     let borderColor = "border-gray-300";
 
-                    // Debug: log cell status for submitted rows
-                    if (rowIndex < currentRow || isCompleted) {
+                    // Debug: log cell state for completed rows
+                    if (rowIndex < currentRow || (isCompleted && cell.letter)) {
                       console.log(
                         `Cell [${rowIndex}][${cellIndex}]: letter="${cell.letter}", status="${cell.status}"`,
                       );
@@ -457,17 +481,15 @@ function WordsRoute() {
                     if (rowIndex === currentRow && !isCompleted) {
                       borderColor = "border-blue-400";
                     } else if (cell.status === "ok") {
-                      bgColor = "bg-green-500";
+                      bgColor = "bg-blue-500";
                       textColor = "text-white";
-                      borderColor = "border-green-600";
+                      borderColor = "border-blue-600";
                     } else if (cell.status === "almost") {
-                      bgColor = "bg-yellow-400";
-                      textColor = "text-black";
-                      borderColor = "border-yellow-500";
+                      bgColor = "bg-blue-200";
+                      borderColor = "border-blue-300";
                     } else if (cell.status === "no" && cell.letter) {
-                      bgColor = "bg-gray-400";
-                      textColor = "text-white";
-                      borderColor = "border-gray-500";
+                      bgColor = "bg-gray-200";
+                      borderColor = "border-gray-300";
                     } else if (!cell.letter) {
                       bgColor = "bg-gray-50";
                     }
@@ -545,14 +567,14 @@ function WordsRoute() {
                   let borderColor = "border-gray-300";
 
                   if (status === "ok") {
-                    bgColor = "bg-green-500";
-                    borderColor = "border-green-600";
+                    bgColor = "bg-blue-500";
+                    borderColor = "border-blue-600";
                   } else if (status === "almost") {
-                    bgColor = "bg-yellow-400";
-                    borderColor = "border-yellow-500";
+                    bgColor = "bg-blue-200";
+                    borderColor = "border-blue-300";
                   } else if (status === "no") {
-                    bgColor = "bg-gray-400";
-                    borderColor = "border-gray-500";
+                    bgColor = "bg-gray-200";
+                    borderColor = "border-gray-300";
                   }
 
                   return (
@@ -563,7 +585,7 @@ function WordsRoute() {
                       className={`
                          ${key === "ENTER" || key === "DEL" ? "flex-[1.5] sm:px-3 lg:px-4 min-w-[50px] sm:min-w-[70px] max-w-[80px]" : "flex-1 sm:w-10 lg:w-12 min-w-[32px] max-w-[50px]"}
                          h-10 sm:h-16 lg:h-18 ${bgColor} border-2 ${borderColor} rounded-lg
-                         font-mono font-semibold text-xs sm:text-lg ${status === "ok" || status === "no" ? "text-white" : status === "almost" ? "text-black" : "text-gray-900"}
+                         font-mono font-semibold text-xs sm:text-lg text-gray-900
                          ${gameOver || isCompleted ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-50 hover:border-blue-400 hover:shadow-md active:scale-95"}
                          transition-all duration-150
                          relative overflow-hidden group
@@ -589,19 +611,19 @@ function WordsRoute() {
           {/* Legend */}
           <div className="mt-3 sm:mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center sm:gap-8 text-center px-2 sm:px-0">
             <div className="flex items-center justify-center gap-2 sm:gap-3">
-              <div className="w-6 h-6 sm:w-10 sm:h-10 bg-green-500 rounded border-2 border-green-600" />
+              <div className="w-6 h-6 sm:w-10 sm:h-10 bg-blue-500 rounded border-2 border-blue-600" />
               <span className="text-sm sm:text-base font-mono text-gray-600">
                 CORRECTO (OK)
               </span>
             </div>
             <div className="flex items-center justify-center gap-2 sm:gap-3">
-              <div className="w-6 h-6 sm:w-10 sm:h-10 bg-yellow-400 rounded border-2 border-yellow-500" />
+              <div className="w-6 h-6 sm:w-10 sm:h-10 bg-blue-200 rounded border-2 border-blue-300" />
               <span className="text-sm sm:text-base font-mono text-gray-600">
                 POSICIÓN_INCORRECTA (CASI)
               </span>
             </div>
             <div className="flex items-center justify-center gap-2 sm:gap-3">
-              <div className="w-6 h-6 sm:w-10 sm:h-10 bg-gray-400 rounded border-2 border-gray-500" />
+              <div className="w-6 h-6 sm:w-10 sm:h-10 bg-gray-200 rounded border-2 border-gray-300" />
               <span className="text-sm sm:text-base font-mono text-gray-600">
                 NO_ENCONTRADA (NO)
               </span>
