@@ -19,10 +19,19 @@ function WordsRoute() {
   // Game state
   const [currentRow, setCurrentRow] = useState(0);
   const [currentGuess, setCurrentGuess] = useState("");
-  const [gameBoard, setGameBoard] = useState(
+  const [gameBoard, setGameBoard] = useState<
+    Array<Array<{ letter: string; status: "ok" | "almost" | "no" | null }>>
+  >(
     Array(6)
       .fill(null)
-      .map(() => Array(5).fill({ letter: "", status: null })),
+      .map(() =>
+        Array(5)
+          .fill(null)
+          .map(() => ({
+            letter: "",
+            status: null as "ok" | "almost" | "no" | null,
+          })),
+      ),
   );
 
   // Keyboard state - tracking which keys have been used and their status
@@ -143,6 +152,7 @@ function WordsRoute() {
                   keyStatus: newKeyStatus,
                   gameOver: true,
                   currentGuess: "",
+                  lastSaved: Date.now(),
                   isCompleted: true,
                   won: true,
                 },
@@ -191,6 +201,7 @@ function WordsRoute() {
                     keyStatus: newKeyStatus,
                     gameOver: true,
                     currentGuess: "",
+                    lastSaved: Date.now(),
                     isCompleted: true,
                     won: false,
                   },
@@ -237,25 +248,33 @@ function WordsRoute() {
     }
   };
 
-  // Update the game board display to show the current guess
+  // Update the game board display to show the current guess while typing
   useEffect(() => {
-    const newBoard = [...gameBoard];
-    // Only update the current row if it's within bounds and hasn't been submitted
-    if (currentRow < 6 && !isCompleted) {
-      const guessArray = currentGuess.split("");
-      const rowToUpdate = Array(5).fill({ letter: "", status: null });
+    // Only update if we're in an active game and within bounds
+    if (currentRow >= 6 || isCompleted) return;
 
-      // Add the current guess characters to the row
-      guessArray.forEach((char, index) => {
-        rowToUpdate[index] = { letter: char, status: null };
-      });
+    // Check if the current row already has submitted results (has status)
+    const currentRowData = gameBoard[currentRow];
+    const hasSubmittedResults =
+      currentRowData && currentRowData.some((cell) => cell.status !== null);
 
-      // Only update if this row hasn't been submitted yet (no status set)
-      if (!newBoard[currentRow] || !newBoard[currentRow][0]?.status) {
-        newBoard[currentRow] = rowToUpdate;
-        setGameBoard(newBoard);
-      }
-    }
+    // Don't overwrite submitted results - only update for typing preview
+    if (hasSubmittedResults) return;
+
+    // Create new row with current guess (only for typing preview)
+    const newRow = Array(5)
+      .fill(null)
+      .map((_, index) => ({
+        letter: currentGuess[index] || "",
+        status: null as "ok" | "almost" | "no" | null,
+      }));
+
+    // Update the board for typing preview
+    setGameBoard((prevBoard) => {
+      const newBoard = [...prevBoard];
+      newBoard[currentRow] = newRow;
+      return newBoard;
+    });
   }, [currentGuess, currentRow, isCompleted]);
 
   // Load saved game state when component mounts
