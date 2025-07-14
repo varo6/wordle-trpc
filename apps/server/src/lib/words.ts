@@ -2211,6 +2211,7 @@ const words = {
     "villa",
     "viola",
     "virar",
+    "iluso",
     "virgo",
     "viril",
     "virus",
