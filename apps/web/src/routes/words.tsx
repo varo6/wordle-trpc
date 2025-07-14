@@ -97,7 +97,6 @@ function WordsRoute() {
             }));
 
             newBoard[submittedRowIndex] = updatedRow;
-
             setGameBoard(newBoard);
 
             // Update keyboard status
@@ -261,7 +260,7 @@ function WordsRoute() {
     // Don't overwrite submitted results - only update for typing preview
     if (hasSubmittedResults) return;
 
-    // Create new row with current guess (only for typing preview)
+    // Create new row with current guess (for typing preview only)
     const newRow = Array(5)
       .fill(null)
       .map((_, index) => ({
@@ -448,37 +447,57 @@ function WordsRoute() {
                   }`}
                 >
                   {row.map((cell, cellIndex) => {
-                    let bgColor = "bg-white";
-                    let textColor = "text-gray-900";
-                    let borderColor = "border-gray-300";
+                    let cellClasses = ["wordle-cell"];
 
-                    if (rowIndex === currentRow && !isCompleted) {
-                      borderColor = "border-blue-400";
-                    } else if (cell.status === "ok") {
-                      bgColor = "bg-blue-500";
-                      textColor = "text-white";
-                      borderColor = "border-blue-600";
+                    // Add state-specific classes
+                    if (cell.status === "ok") {
+                      cellClasses.push("correct");
                     } else if (cell.status === "almost") {
-                      bgColor = "bg-blue-200";
-                      borderColor = "border-blue-300";
+                      cellClasses.push("almost");
                     } else if (cell.status === "no" && cell.letter) {
-                      bgColor = "bg-gray-200";
-                      borderColor = "border-gray-300";
-                    } else if (!cell.letter) {
-                      bgColor = "bg-gray-50";
+                      cellClasses.push("wrong");
+                    } else if (cell.letter && cell.status === null) {
+                      cellClasses.push("filled");
+                    }
+
+                    // Add responsive and interaction classes
+                    cellClasses.push(
+                      "aspect-square",
+                      "border-2",
+                      "rounded-lg",
+                      "flex",
+                      "items-center",
+                      "justify-center",
+                      "font-mono",
+                      "text-xl",
+                      "sm:text-2xl",
+                      "lg:text-3xl",
+                      "font-bold",
+                      "transition-all",
+                      "duration-300",
+                      "hover:border-blue-300",
+                      "relative",
+                      "overflow-hidden",
+                      "group",
+                      "min-h-[50px]",
+                      "min-w-[50px]",
+                      "sm:min-h-[70px]",
+                      "sm:min-w-[70px]",
+                      "lg:min-h-[85px]",
+                      "lg:min-w-[85px]",
+                    );
+
+                    // Add current row border if typing
+                    if (
+                      rowIndex === currentRow &&
+                      !isCompleted &&
+                      cell.status === null
+                    ) {
+                      cellClasses.push("border-blue-400");
                     }
 
                     return (
-                      <div
-                        key={cellIndex}
-                        className={`
-                         wordle-cell aspect-square border-2 rounded-lg flex items-center justify-center
-                         font-mono text-xl sm:text-2xl lg:text-3xl font-bold transition-all duration-300
-                         ${borderColor} ${bgColor} ${textColor}
-                         hover:border-blue-300 relative overflow-hidden group
-                         min-h-[50px] min-w-[50px] sm:min-h-[70px] sm:min-w-[70px] lg:min-h-[85px] lg:min-w-[85px]
-                       `}
-                      >
+                      <div key={cellIndex} className={cellClasses.join(" ")}>
                         {/* Hacky grid effect */}
                         <div className="absolute inset-0 opacity-5">
                           <div className="absolute inset-0 bg-[linear-gradient(0deg,transparent_24%,rgba(59,130,246,0.05)_25%,rgba(59,130,246,0.05)_26%,transparent_27%,transparent_74%,rgba(59,130,246,0.05)_75%,rgba(59,130,246,0.05)_76%,transparent_77%,transparent),linear-gradient(90deg,transparent_24%,rgba(59,130,246,0.05)_25%,rgba(59,130,246,0.05)_26%,transparent_27%,transparent_74%,rgba(59,130,246,0.05)_75%,rgba(59,130,246,0.05)_76%,transparent_77%,transparent)] bg-[length:20px_20px]" />

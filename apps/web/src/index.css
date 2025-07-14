@@ -197,15 +197,15 @@ body {
 }
 
 .wordle-cell.correct {
-  background-color: #10b981;
-  border-color: #10b981;
+  background-color: #3b82f6;
+  border-color: #2563eb;
   color: white;
 }
 
 .wordle-cell.almost {
-  background-color: #f59e0b;
-  border-color: #f59e0b;
-  color: white;
+  background-color: #bfdbfe;
+  border-color: #93c5fd;
+  color: #1f2937;
 }
 
 .wordle-cell.wrong {
