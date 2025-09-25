@@ -95,6 +95,7 @@ export const wordRouter = router({
         }
       }
 
+      console.log(response.isValid);
       return response;
     }),
 });

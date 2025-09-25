@@ -4,7 +4,7 @@ import { trpc } from "@/utils/trpc";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Binary, Code2, Terminal } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export const Route = createFileRoute("/words")({
   component: WordsRoute,
@@ -47,6 +47,9 @@ function WordsRoute() {
   const [isCompleted, setIsCompleted] = useState(false); // Flag for completed games
   const [won, setWon] = useState(false); // Flag to track if won
 
+  // Ref to store error message timeout
+  const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const keyboard = [
     ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
     ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
@@ -78,9 +81,18 @@ function WordsRoute() {
 
           if (!data.isValid) {
             setResult("Palabra no encontrada en el diccionario");
+            // Clear any existing error timeout
+            if (errorTimeoutRef.current) {
+              clearTimeout(errorTimeoutRef.current);
+            }
             // Trigger shake animation for invalid word
             setShakeRow(submittedRowIndex);
             setTimeout(() => setShakeRow(null), 600); // Remove shake after animation
+            // Auto-dismiss error message after 4 seconds
+            errorTimeoutRef.current = setTimeout(() => {
+              setResult(null);
+              errorTimeoutRef.current = null;
+            }, 4000);
             // Don't advance row for invalid words, keep the word visible
             // Don't clear currentGuess so the word stays visible
             // NO actualizamos gameBoard ni keyStatus aquí
@@ -374,6 +386,15 @@ function WordsRoute() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentGuess, currentRow, gameBoard, gameOver, isCompleted]);
 
+  // Cleanup error timeout on component unmount
+  useEffect(() => {
+    return () => {
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="mobile-layout min-h-screen bg-white w-full overflow-x-hidden">
       {/* CSS for shake animation */}
@@ -438,7 +459,7 @@ function WordsRoute() {
 
           {/* Game Board */}
           <div className="mobile-game-board mb-2 sm:mb-4 flex justify-center w-full px-1 sm:px-4">
-            <div className="wordle-board grid grid-rows-6 gap-1 sm:gap-3 w-full max-w-[300px] sm:max-w-[500px] lg:max-w-[550px] mx-auto">
+            <div className="wordle-board grid grid-rows-6 gap-1 sm:gap-3 w-full max-w-[300px] sm:max-w-[500px] lg:max-w-[400px] mx-auto">
               {gameBoard.map((row, rowIndex) => (
                 <div
                   key={rowIndex}
@@ -471,7 +492,7 @@ function WordsRoute() {
                       "font-mono",
                       "text-xl",
                       "sm:text-2xl",
-                      "lg:text-3xl",
+                      "lg:text-2xl",
                       "font-bold",
                       "transition-all",
                       "duration-300",
@@ -483,8 +504,8 @@ function WordsRoute() {
                       "min-w-[50px]",
                       "sm:min-h-[70px]",
                       "sm:min-w-[70px]",
-                      "lg:min-h-[85px]",
-                      "lg:min-w-[85px]",
+                      "lg:min-h-[60px]",
+                      "lg:min-w-[60px]",
                     );
 
                     // Add current row border if typing
@@ -547,7 +568,7 @@ function WordsRoute() {
         </div>
 
         {/* Virtual Keyboard (disabled if completed) */}
-        <div className="mobile-keyboard-section w-full sm:max-w-3xl mx-auto px-1 sm:px-4 overflow-x-hidden">
+        <div className="mobile-keyboard-section w-full sm:max-w-4xl lg:max-w-2xl mx-auto px-1 sm:px-4 overflow-x-hidden">
           <div className="mobile-keyboard space-y-1 sm:space-y-3">
             {keyboard.map((row, rowIndex) => (
               <div
@@ -577,12 +598,12 @@ function WordsRoute() {
                       disabled={gameOver || isCompleted}
                       className={`
                          ${key === "ENTER" || key === "DEL" ? "flex-[1.5] sm:px-3 lg:px-4 min-w-[50px] sm:min-w-[70px] max-w-[80px]" : "flex-1 sm:w-10 lg:w-12 min-w-[32px] max-w-[50px]"}
-                         h-10 sm:h-16 lg:h-18 ${bgColor} border-2 ${borderColor} rounded-lg
-                         font-mono font-semibold text-xs sm:text-lg text-gray-900
+                          h-10 sm:h-16 lg:h-12 ${bgColor} border-2 ${borderColor} rounded-lg
+                          font-mono font-semibold text-xs sm:text-lg lg:text-base text-gray-900
                          ${gameOver || isCompleted ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-50 hover:border-blue-400 hover:shadow-md active:scale-95"}
                          transition-all duration-150
                          relative overflow-hidden group
-                         min-h-[44px] sm:min-h-[64px] lg:min-h-[72px] touch-manipulation
+                          min-h-[44px] sm:min-h-[64px] lg:min-h-[48px] touch-manipulation
                        `}
                     >
                       {/* Tech pattern overlay */}
