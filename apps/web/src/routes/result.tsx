@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Code2, Trophy, RotateCcw, Home } from "lucide-react";
+import { Code2, Trophy, RotateCcw, Home, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { clearGameState } from "@/lib/cookies";
+import { trpc } from "@/utils/trpc";
+import { useQuery } from "@tanstack/react-query";
 
 interface GameResult {
   won: boolean;
@@ -22,6 +24,9 @@ function ResultComponent() {
   const navigate = useNavigate();
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
 
+  const { data: wordExplanation } = useQuery(
+    trpc.word.getWordExplanation.queryOptions(gameResult?.targetWord || ""),
+  );
   useEffect(() => {
     // Try to get game result from localStorage
     const savedResult = localStorage.getItem("wordleGameResult");
@@ -135,6 +140,27 @@ function ResultComponent() {
             </span>
           </div>
         </div>
+
+        {wordExplanation && wordExplanation.explanation && (
+          <Card className="max-w-2xl mx-auto mb-4 sm:mb-8 border-2 bg-blue-50 border-blue-300">
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-2xl font-mono text-blue-700">
+                <Info className="w-5 h-5 sm:w-6 sm:h-6" />
+                EXPLICACIÓN_DE_LA_PALABRA
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-white p-4 sm:p-6 rounded-lg border border-blue-200">
+                <h3 className="text-base sm:text-xl font-mono font-bold text-blue-800 mb-2 uppercase">
+                  {wordExplanation.word}
+                </h3>
+                <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+                  {wordExplanation.explanation}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Results Card */}
         <Card className="max-w-2xl mx-auto mb-4 sm:mb-8 border-2 bg-white border-blue-200">

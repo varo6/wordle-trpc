@@ -25,8 +25,8 @@ COPY . .
 # Construir aplicaciones
 RUN bun run build
 
-# Crear directorio para datos
-RUN mkdir -p /app/data && chown -R wordle:nodejs /app
+# Crear directorios para datos y base de datos
+RUN mkdir -p /app/data /app/db && chown -R wordle:nodejs /app
 
 # Cambiar a usuario no-root
 USER wordle

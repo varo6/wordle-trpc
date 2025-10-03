@@ -1,4 +1,4 @@
-import words from "./words";
+import words from "./cyberwords";
 
 // Cache for the current word
 let cachedWord: string | null = null;

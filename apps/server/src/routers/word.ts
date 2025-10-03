@@ -4,6 +4,7 @@ import { todo } from "../db/schema/todo";
 import { eq } from "drizzle-orm";
 import { db } from "../db";
 import words from "../lib/words";
+import cyberwords from "../lib/cyberwords";
 import { getCurrentWord, getTodaysWord, clearWordCache } from "../lib/today";
 import { compareStrings } from "@/lib/word";
 
@@ -41,6 +42,16 @@ export const wordRouter = router({
       cacheStatus: "Word is cached until next day (00:00 Madrid time)",
     };
   }),
+
+  getWordExplanation: publicProcedure
+    .input(z.string())
+    .query(({ input: word }) => {
+      const explanation = cyberwords.explanations[word.toLowerCase()];
+      return {
+        word: word,
+        explanation: explanation || null,
+      };
+    }),
 
   clearCache: publicProcedure.mutation(() => {
     clearWordCache();
@@ -82,7 +93,7 @@ export const wordRouter = router({
       };
 
       // Check if the word is valid
-      if (words.words.includes(guess)) {
+      if (words.words.includes(guess) || cyberwords.words.includes(guess)) {
         response.isValid = true;
 
         // Get comparison result

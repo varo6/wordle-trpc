@@ -2223,6 +2223,7 @@ const words = {
     "vital",
     "vitor",
     "viuda",
+    "ratio",
     "viudo",
     "vivar",
     "vivaz",

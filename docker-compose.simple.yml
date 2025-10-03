@@ -8,10 +8,10 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - cors_origin=https://trustlabwordle.alvarohr.es,http://localhost:53880,http://localhost:3000,http://localhost:3001
-      - DATABASE_URL=file:./local.db
+      - DATABASE_URL=file:/app/db/local.db
       - TRUST_PROXY=true
     volumes:
-      - wordle_db:/app/apps/server
+      - wordle_db:/app/db
       - ./data:/app/data
     networks:
       - wordle-network
