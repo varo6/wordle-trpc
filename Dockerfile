@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for tRPC Wordle Monorepo
 
 # Stage 1: Base image with Bun
-FROM oven/bun:1.2.17-alpine AS base
+FROM oven/bun:1.3.0-alpine AS base
 WORKDIR /app
 
 # Stage 2: Install dependencies

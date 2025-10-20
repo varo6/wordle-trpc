@@ -13,6 +13,7 @@ import { Route as WordsRouteImport } from './routes/words'
 import { Route as TodosRouteImport } from './routes/todos'
 import { Route as ResultRouteImport } from './routes/result'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as FeriacienciaRouteImport } from './routes/feriaciencia'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -36,6 +37,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FeriacienciaRoute = FeriacienciaRouteImport.update({
+  id: '/feriaciencia',
+  path: '/feriaciencia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -50,6 +56,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/feriaciencia': typeof FeriacienciaRoute
   '/login': typeof LoginRoute
   '/result': typeof ResultRoute
   '/todos': typeof TodosRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/feriaciencia': typeof FeriacienciaRoute
   '/login': typeof LoginRoute
   '/result': typeof ResultRoute
   '/todos': typeof TodosRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/feriaciencia': typeof FeriacienciaRoute
   '/login': typeof LoginRoute
   '/result': typeof ResultRoute
   '/todos': typeof TodosRoute
@@ -74,13 +83,28 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/login' | '/result' | '/todos' | '/words'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/feriaciencia'
+    | '/login'
+    | '/result'
+    | '/todos'
+    | '/words'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/login' | '/result' | '/todos' | '/words'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/feriaciencia'
+    | '/login'
+    | '/result'
+    | '/todos'
+    | '/words'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/feriaciencia'
     | '/login'
     | '/result'
     | '/todos'
@@ -90,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
+  FeriacienciaRoute: typeof FeriacienciaRoute
   LoginRoute: typeof LoginRoute
   ResultRoute: typeof ResultRoute
   TodosRoute: typeof TodosRoute
@@ -126,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/feriaciencia': {
+      id: '/feriaciencia'
+      path: '/feriaciencia'
+      fullPath: '/feriaciencia'
+      preLoaderRoute: typeof FeriacienciaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -146,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
+  FeriacienciaRoute: FeriacienciaRoute,
   LoginRoute: LoginRoute,
   ResultRoute: ResultRoute,
   TodosRoute: TodosRoute,

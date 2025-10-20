@@ -1,6 +1,7 @@
 import { protectedProcedure, publicProcedure, router } from "../lib/trpc";
 import { todoRouter } from "./todo";
 import { wordRouter } from "./word";
+import { feriacienciaRouter } from "./feriaciencia";
 
 export const appRouter = router({
   healthCheck: publicProcedure.query(() => {
@@ -14,5 +15,6 @@ export const appRouter = router({
   }),
   todo: todoRouter,
   word: wordRouter,
+  feriaciencia: feriacienciaRouter,
 });
 export type AppRouter = typeof appRouter;
