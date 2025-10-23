@@ -30,6 +30,30 @@ if (!rootElement) {
   throw new Error("Root element not found");
 }
 
+const isPwaEnabled = import.meta.env.VITE_ENABLE_PWA === "true";
+
+if (!isPwaEnabled && "serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .getRegistrations()
+    .then((registrations) => {
+      registrations.forEach((registration) => registration.unregister());
+    })
+    .catch(() => {
+      /* no-op */
+    });
+
+  if ("caches" in window) {
+    caches
+      .keys()
+      .then((keys) => {
+        keys.forEach((key) => caches.delete(key));
+      })
+      .catch(() => {
+        /* no-op */
+      });
+  }
+}
+
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(<RouterProvider router={router} />);

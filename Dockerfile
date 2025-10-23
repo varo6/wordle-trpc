@@ -30,6 +30,9 @@ COPY apps/ ./apps/
 # Build all applications
 RUN bun run build
 
+# Run database migrations
+RUN cd apps/server && bun run db:push
+
 # Stage 4: Production image
 FROM base AS runner
 WORKDIR /app

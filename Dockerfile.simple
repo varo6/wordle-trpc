@@ -28,6 +28,9 @@ RUN bun run build
 # Crear directorios para datos y base de datos
 RUN mkdir -p /app/data /app/db && chown -R wordle:nodejs /app
 
+# Ejecutar migraciones de base de datos
+RUN cd apps/server && bun run db:push
+
 # Cambiar a usuario no-root
 USER wordle
 
