@@ -21,7 +21,7 @@ export default function Header() {
             </div>
             <h1 className="text-lg sm:text-2xl font-mono font-bold text-gray-900">
               <span className="hidden sm:inline">TRUSTLAB</span>
-              <span className="sm:hidden">TL</span>
+              <span className="sm:hidden">TRUSTLAB</span>
               <span className="text-blue-600">WORDLE</span>
             </h1>
           </div>

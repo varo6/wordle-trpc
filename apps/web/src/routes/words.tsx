@@ -3,7 +3,7 @@ import { saveGameState, loadGameState, hasSavedGame } from "@/lib/cookies";
 import { trpc } from "@/utils/trpc";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Binary, Code2, Terminal, Info } from "lucide-react";
+import { Binary, Code2, Info, Terminal } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type BoardCell = { letter: string; status: "ok" | "almost" | "no" | null };
@@ -68,6 +68,7 @@ export function WordsRoute() {
 
   // Ref to store error message timeout
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hasReportedFeriaResultRef = useRef(false);
 
   const keyboard = [
     ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
@@ -83,6 +84,9 @@ export function WordsRoute() {
   );
   const startFeriaGameMutation = useMutation(
     trpc.feriaciencia.startGame.mutationOptions({}),
+  );
+  const { mutate: saveFeriaResult } = useMutation(
+    trpc.feriaciencia.recordGameResult.mutationOptions({}),
   );
 
   // Get time until next epoch for cookie expiration
@@ -142,6 +146,7 @@ export function WordsRoute() {
     setShowSavedGameNotice(false);
     setFeriaGameId(null);
     setWord("");
+    hasReportedFeriaResultRef.current = false;
     resetGameState();
 
     startFeriaGameMutation.mutate(undefined, {
@@ -163,6 +168,35 @@ export function WordsRoute() {
       startFeriaGame();
     }
   }, [isFeria, feriaGameId, isStartingFeriaGame, startFeriaGame]);
+
+  const reportFeriaResult = useCallback(
+    (didWin: boolean) => {
+      if (!isFeria || !feriaGameId || hasReportedFeriaResultRef.current) {
+        return;
+      }
+
+      hasReportedFeriaResultRef.current = true;
+
+      saveFeriaResult(
+        { gameId: feriaGameId, won: didWin },
+        {
+          onSuccess: (data) => {
+            if (!data?.dbUpdated && data?.error) {
+              console.warn(data.error);
+            }
+          },
+          onError: (error) => {
+            const message =
+              error instanceof Error
+                ? error.message
+                : "No se pudieron actualizar las estadísticas.";
+            console.warn(message);
+          },
+        },
+      );
+    },
+    [isFeria, feriaGameId, saveFeriaResult],
+  );
 
   // Handle try word with the current guess
   const handleTryWord = () => {
@@ -254,8 +288,9 @@ export function WordsRoute() {
         setCurrentRow(finalRow);
         setCurrentGuess("");
 
-        // Save game result for daily mode
-        if (!isFeria) {
+        if (isFeria) {
+          reportFeriaResult(true);
+        } else {
           const gameResult = {
             won: true,
             tries: finalRow,
@@ -302,6 +337,10 @@ export function WordsRoute() {
           setResult("¡Juego terminado! Mejor suerte la próxima vez.");
 
           const targetWordForResult = isFeria ? word : todaysWord;
+
+          if (isFeria) {
+            reportFeriaResult(false);
+          }
 
           if (!isFeria) {
             const gameResult = {
@@ -496,7 +535,7 @@ export function WordsRoute() {
         isCompleted,
         won,
       };
-      saveGameState(gameState, minutesToEpoch);
+      saveGameState(gameState, minutesToEpoch ?? 1440);
     }
   }, [
     currentRow,
@@ -568,43 +607,35 @@ export function WordsRoute() {
         }
       `}</style>
 
+            {/* Legend */}
+            <div className="mt-3 sm:mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center sm:gap-8 text-center px-2 sm:px-0">
+              <div className="flex items-center justify-center gap-2 sm:gap-3">
+                <div className="w-6 h-6 sm:w-10 sm:h-10 bg-blue-500 rounded border-2 border-blue-600" />
+                <span className="text-sm sm:text-base font-mono text-gray-600">
+                  CORRECTO (OK)
+                </span>
+              </div>
+              <div className="flex items-center justify-center gap-2 sm:gap-3">
+                <div className="w-6 h-6 sm:w-10 sm:h-10 bg-blue-200 rounded border-2 border-blue-300" />
+                <span className="text-sm sm:text-base font-mono text-gray-600">
+                  POSICIÓN_INCORRECTA (CASI)
+                </span>
+              </div>
+              <div className="flex items-center justify-center gap-2 sm:gap-3">
+                <div className="w-6 h-6 sm:w-10 sm:h-10 bg-gray-200 rounded border-2 border-gray-300" />
+                <span className="text-sm sm:text-base font-mono text-gray-600">
+                  NO_ENCONTRADA (NO)
+                </span>
+              </div>
+            </div>
+
       {/* Game Container */}
       <main className="mobile-content w-full max-w-full mx-auto overflow-x-hidden">
         <div className="mobile-game-section">
-          {/* Status Bar */}
-          <div className="mobile-status-bar mb-4 sm:mb-6 lg:mb-8 mt-2 sm:mt-4 lg:mt-6 p-3 sm:p-4 lg:p-6 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex flex-col items-center sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 lg:gap-6">
-              <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 text-sm sm:text-base lg:text-lg font-mono text-center sm:text-left">
-                <Code2 className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-blue-600" />
-                <span className="text-blue-700">ESTADO DEL SISTEMA:</span>
-                <span className="text-blue-600 animate-pulse">
-                  LISTO_PARA_ENTRADA
-                </span>
-              </div>
-              {!isFeria && minutesToEpoch && (
-                <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 text-sm sm:text-base lg:text-lg font-mono text-center sm:text-left">
-                  <Terminal className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-blue-600" />
-                  <span className="text-blue-700">PRÓXIMA_PALABRA_EN:</span>
-                  <span className="text-blue-600 font-bold">
-                    {Math.floor(minutesToEpoch / 60)}h {minutesToEpoch % 60}m
-                  </span>
-                </div>
-              )}
-              {isFeria && (
-                <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 text-sm sm:text-base lg:text-lg font-mono text-center sm:text-left">
-                  <Terminal className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-blue-600" />
-                  <span className="text-blue-700">MODO:</span>
-                  <span className="text-blue-600 font-bold uppercase">
-                    {isStartingFeriaGame ? "Generando..." : "Palabra aleatoria"}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
 
           {/* Saved Game Notice */}
           {!isFeria && showSavedGameNotice && (
-            <div className="pc-saved-notice mb-4 sm:mb-6 lg:mb-8 mt-2 sm:mt-4 lg:mt-6 p-3 sm:p-4 lg:p-6 bg-green-50 border border-green-200 rounded-lg">
+            <div className="pc-saved-notice mb-4 sm:mb-6 lg:mb-8 mt-2 sm:mt-2 lg:mt-6 p-3 sm:p-4 lg:p-6 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex flex-col items-center sm:flex-row sm:items-center gap-2 sm:gap-3 lg:gap-4 text-sm sm:text-base lg:text-lg font-mono text-center sm:text-left">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <Binary className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-green-600" />
@@ -645,6 +676,7 @@ export function WordsRoute() {
                       // Add responsive and interaction classes
                       cellClasses.push(
                         "aspect-square",
+                        "w-full",
                         "border-2",
                         "rounded-lg",
                         "flex",
@@ -661,12 +693,6 @@ export function WordsRoute() {
                         "relative",
                         "overflow-hidden",
                         "group",
-                        "min-h-[50px]",
-                        "min-w-[50px]",
-                        "sm:min-h-[70px]",
-                        "sm:min-w-[70px]",
-                        "lg:min-h-[60px]",
-                        "lg:min-w-[60px]",
                       );
 
                       // Add current row border if typing
@@ -820,28 +846,36 @@ export function WordsRoute() {
               ))}
             </div>
 
-            {/* Legend */}
-            <div className="mt-3 sm:mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center sm:gap-8 text-center px-2 sm:px-0">
-              <div className="flex items-center justify-center gap-2 sm:gap-3">
-                <div className="w-6 h-6 sm:w-10 sm:h-10 bg-blue-500 rounded border-2 border-blue-600" />
-                <span className="text-sm sm:text-base font-mono text-gray-600">
-                  CORRECTO (OK)
+          {/* Status Bar */}
+          <div className="mobile-status-bar mb-4 sm:mb-6 lg:mb-8 mt-2 sm:mt-4 lg:mt-6 p-3 sm:p-4 lg:p-6 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex flex-col items-center sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 lg:gap-6">
+              <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 text-sm sm:text-base lg:text-lg font-mono text-center sm:text-left">
+                <Code2 className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-blue-600" />
+                <span className="text-blue-700">ESTADO DEL SISTEMA:</span>
+                <span className="text-blue-600 animate-pulse">
+                  LISTO_PARA_ENTRADA
                 </span>
               </div>
-              <div className="flex items-center justify-center gap-2 sm:gap-3">
-                <div className="w-6 h-6 sm:w-10 sm:h-10 bg-blue-200 rounded border-2 border-blue-300" />
-                <span className="text-sm sm:text-base font-mono text-gray-600">
-                  POSICIÓN_INCORRECTA (CASI)
-                </span>
-              </div>
-              <div className="flex items-center justify-center gap-2 sm:gap-3">
-                <div className="w-6 h-6 sm:w-10 sm:h-10 bg-gray-200 rounded border-2 border-gray-300" />
-                <span className="text-sm sm:text-base font-mono text-gray-600">
-                  NO_ENCONTRADA (NO)
-                </span>
-              </div>
+              {!isFeria && minutesToEpoch && (
+                <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 text-sm sm:text-base lg:text-lg font-mono text-center sm:text-left">
+                  <Terminal className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-blue-600" />
+                  <span className="text-blue-700">PRÓXIMA_PALABRA_EN:</span>
+                  <span className="text-blue-600 font-bold">
+                    {Math.floor(minutesToEpoch / 60)}h {minutesToEpoch % 60}m
+                  </span>
+                </div>
+              )}
+              {isFeria && (
+                <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 text-sm sm:text-base lg:text-lg font-mono text-center sm:text-left">
+                  <Terminal className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-blue-600" />
+                  <span className="text-blue-700">MODO:</span>
+                  <span className="text-blue-600 font-bold uppercase">
+                    {isStartingFeriaGame ? "Generando..." : "Palabra aleatoria"}
+                  </span>
+                </div>
+              )}
             </div>
-
+          </div>
             {/* Tech decoration */}
             <div className="mt-4 sm:mt-6 text-center">
               <div className="inline-flex items-center gap-2 text-sm font-mono text-blue-600">

@@ -175,6 +175,7 @@ body {
 
 .wordle-cell {
   aspect-ratio: 1;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -184,11 +185,11 @@ body {
   font-weight: bold;
   font-size: 1.25rem;
   text-transform: uppercase;
-
   background-color: white;
   transition: all 0.2s ease-in-out;
-  min-height: 70px;
-  min-width: 70px;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
 }
 
 .wordle-cell.filled {
@@ -242,10 +243,7 @@ body {
   }
 
   .wordle-cell {
-    min-height: 45px;
-    min-width: 45px;
-    max-width: calc((100vw - 4rem) / 5 - 0.125rem);
-    font-size: 1rem;
+    font-size: clamp(0.95rem, 4vw, 1.1rem);
     border-radius: 0.25rem;
   }
 
@@ -302,7 +300,8 @@ body {
     min-height: 100dvh; /* Dynamic viewport height */
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 0.75rem;
     overflow-x: hidden;
     box-sizing: border-box;
     /* Handle iOS Safari bottom bar */
@@ -311,7 +310,7 @@ body {
 
   /* Mobile keyboard optimization */
   .mobile-keyboard {
-    margin-top: auto;
+    margin-top: 0.75rem;
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
     /* Ensure keyboard doesn't get cut off */
     margin-bottom: env(safe-area-inset-bottom, 0);
@@ -366,9 +365,7 @@ body {
   }
 
   .wordle-cell {
-    min-height: 55px;
-    min-width: 55px;
-    font-size: 1.125rem;
+    font-size: clamp(1rem, 5vw, 1.2rem);
     border-width: 1px;
   }
 
@@ -413,9 +410,7 @@ body {
   }
 
   .wordle-cell {
-    min-height: 45px;
-    min-width: 45px;
-    font-size: 0.9rem;
+    font-size: clamp(0.9rem, 5vw, 1.05rem);
   }
 
   /* Ultra compact keyboard */
@@ -443,9 +438,7 @@ body {
   }
 
   .wordle-cell {
-    min-height: 42px;
-    min-width: 42px;
-    font-size: 0.8rem;
+    font-size: clamp(0.8rem, 5vw, 0.95rem);
   }
 
   /* Minimal keyboard for 320px screens */
@@ -478,9 +471,7 @@ body {
   }
 
   .wordle-cell {
-    min-height: 40px;
-    min-width: 40px;
-    font-size: 1rem;
+    font-size: clamp(0.95rem, 3vw, 1.1rem);
   }
 
   /* Reduce vertical padding in landscape */
@@ -704,7 +695,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: 0.25rem;
   width: 100%;
   max-width: 100vw;
@@ -713,10 +704,10 @@ body {
 }
 
 .mobile-game-section {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   gap: 0.75rem;
   width: 100%;
@@ -724,7 +715,7 @@ body {
 }
 
 .mobile-keyboard-section {
-  margin-top: auto;
+  margin-top: 0;
   padding-bottom: env(safe-area-inset-bottom);
   width: 100%;
   max-width: 100vw;
